@@ -1,0 +1,22 @@
+# Simulant dependencies
+/libraries/
+
+# Generated builds and packages
+/build/
+/packages/
+
+# Build logs
+*.log
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+
+# Temporary and backup files
+*.bak
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
