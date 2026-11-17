@@ -16,6 +16,19 @@ public:
         scenes->register_scene<smlt::scenes::Splash>("main", "app");
         scenes->register_scene<GameScene>("app");
 
+        scenes->signal_scene_activated().connect(
+            [](const std::string& route, Scene* scene) {
+                if(route != "main") {
+                    return;
+                }
+
+                for(auto* image : scene->nodes_by_type(ui::Image::Meta::node_type)) {
+                    if(!image->has_parent()) {
+                        image->set_parent(scene);
+                    }
+                }
+            });
+
         return true;
     }
 };
