@@ -14,6 +14,9 @@ const char* const STRAFE = "exploration.strafe";
 const char* const TURN = "exploration.turn";
 const char* const TILT = "exploration.tilt";
 const char* const RESET = "exploration.reset";
+const char* const TURN_LEFT = "camera.turn_left";
+const char* const TURN_RIGHT = "camera.turn_right";
+const char* const INTERACT = "exploration.interact";
 
 } // namespace
 
@@ -160,10 +163,16 @@ void GameScene::bind_controls() {
     auto forward = input->new_axis(FORWARD);
     forward->set_joystick_axis(smlt::JOYSTICK_AXIS_Y);
     forward->set_dead_zone(0.18f);
-    forward->set_inversed();
     auto strafe = input->new_axis(STRAFE);
     strafe->set_joystick_axis(smlt::JOYSTICK_AXIS_X);
     strafe->set_dead_zone(0.18f);
+
+    auto turn_left = input->new_axis(TURN_LEFT);
+    turn_left->set_joystick_axis(smlt::JOYSTICK_AXIS_LTRIGGER);
+    turn_left->set_dead_zone(0.18f);
+    auto turn_right = input->new_axis(TURN_RIGHT);
+    turn_right->set_joystick_axis(smlt::JOYSTICK_AXIS_RTRIGGER);
+    turn_right->set_dead_zone(0.18f);
 
     keys(FORWARD, smlt::KEYBOARD_CODE_W, smlt::KEYBOARD_CODE_S);
     keys(FORWARD, smlt::KEYBOARD_CODE_Z, smlt::KEYBOARD_CODE_S);
@@ -172,12 +181,12 @@ void GameScene::bind_controls() {
     keys(TURN, smlt::KEYBOARD_CODE_RIGHT, smlt::KEYBOARD_CODE_LEFT);
     keys(TILT, smlt::KEYBOARD_CODE_UP, smlt::KEYBOARD_CODE_DOWN);
     keys(RESET, smlt::KEYBOARD_CODE_R);
+    keys(INTERACT, smlt::KEYBOARD_CODE_E);
 
-    buttons(TURN, smlt::JOYSTICK_BUTTON_B, smlt::JOYSTICK_BUTTON_X);
     buttons(TURN, smlt::JOYSTICK_BUTTON_DPAD_RIGHT, smlt::JOYSTICK_BUTTON_DPAD_LEFT);
-    buttons(TILT, smlt::JOYSTICK_BUTTON_Y, smlt::JOYSTICK_BUTTON_A);
     buttons(TILT, smlt::JOYSTICK_BUTTON_DPAD_UP, smlt::JOYSTICK_BUTTON_DPAD_DOWN);
     buttons(RESET, smlt::JOYSTICK_BUTTON_START);
+    buttons(INTERACT, smlt::JOYSTICK_BUTTON_A);
 }
 
 void GameScene::reset_player() {
@@ -211,8 +220,11 @@ void GameScene::on_update(float dt) {
 
     // Avoid a large jump after a pause; speeds are expressed per second.
     dt = std::clamp(dt, 0.0f, 0.1f);
-    camera_yaw_ = std::remainder(camera_yaw_ - input->axis_value(TURN) * TURN_SPEED * dt,
-                                 360.0f);
+    const float turn =
+        input->axis_value(TURN) +
+        input->axis_value(TURN_RIGHT) -
+        input->axis_value(TURN_LEFT);
+    camera_yaw_ = std::remainder(camera_yaw_ + turn * TURN_SPEED * dt, 360.0f);
     camera_elevation_ = std::clamp(
         camera_elevation_ + input->axis_value(TILT) * 60.0f * dt, 15.0f, 65.0f);
 
@@ -240,7 +252,8 @@ void GameScene::on_update(float dt) {
 
 void GameScene::on_unload() {
     // InputManager outlives this scene: remove only the bindings we created.
-    for(const auto* name : {FORWARD, STRAFE, TURN, TILT, RESET}) {
+    for(const auto* name : {FORWARD, STRAFE, TURN, TILT, RESET,
+                            TURN_LEFT, TURN_RIGHT, INTERACT}) {
         input->destroy_axises(name);
     }
     player_ = nullptr;
