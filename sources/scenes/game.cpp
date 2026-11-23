@@ -50,9 +50,9 @@ const char* const OBJECT_DIALOGUE[] = {
     "Il manque un petit morceau au mécanisme."
 };
 
-interaction::Position position_xz(smlt::StageNode* node) {
+interaction::Position position_xyz(smlt::StageNode* node) {
     const auto position = node->transform->position();
-    return {position.x, position.z};
+    return {position.x, position.y, position.z};
 }
 
 } // namespace
@@ -190,10 +190,14 @@ bool GameScene::update_nearby_interaction() {
     if(!dialogue_open_) {
         const bool object_available = quest_state_ == QuestState::SEARCHING_ITEM &&
                                        object_ && object_->is_visible();
-        const auto object_position = object_available
-            ? position_xz(object_) : interaction::Position{};
+        auto object_position = object_available
+            ? position_xyz(object_) : interaction::Position{};
+        if(object_available) {
+            // Compare the object's base with the player's feet, not its centre.
+            object_position.y = object_->transformed_aabb().min().y;
+        }
         nearby_interaction_ = interaction::find_nearby(
-            position_xz(player_), position_xz(npc_a_), position_xz(npc_b_),
+            position_xyz(player_), position_xyz(npc_a_), position_xyz(npc_b_),
             object_position, object_available);
     }
     return previous != nearby_interaction_;
