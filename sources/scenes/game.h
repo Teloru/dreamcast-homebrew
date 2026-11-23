@@ -41,6 +41,8 @@ private:
     void add_triangle_landmark(const smlt::Vec3& position);
     void add_camera_obstacle(const smlt::Vec3& position, const smlt::Vec3& size);
     void bind_controls();
+    void start_music();
+    void stop_music();
     void reset_player();
     void update_camera();
     void setup_ui();
@@ -68,6 +70,9 @@ private:
     smlt::ui::Label* dialogue_text_ = nullptr;
     smlt::Actor* object_ = nullptr;
     smlt::Actor* victory_marker_ = nullptr;
+    smlt::SoundPtr music_;
+    smlt::AudioSource* music_source_ = nullptr;
+    smlt::PlayingSoundPtr music_playing_;
     float camera_yaw_ = 0.0f;
     float camera_elevation_ = 30.0f;
     float player_height_ = 0.0f;

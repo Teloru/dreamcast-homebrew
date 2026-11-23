@@ -80,6 +80,7 @@ void GameScene::on_load() {
 
     bind_controls();
     reset_player();
+    start_music();
 }
 
 void GameScene::bind_controls() {
@@ -353,6 +354,8 @@ void GameScene::on_update(float dt) {
 }
 
 void GameScene::on_unload() {
+    stop_music();
+
     // InputManager outlives this scene: remove only the bindings we created.
     for(const auto* name : {FORWARD, STRAFE, TURN, TILT, RESET,
                             TURN_LEFT, TURN_RIGHT, INTERACT}) {
