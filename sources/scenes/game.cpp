@@ -13,7 +13,6 @@ const char* const FORWARD = "exploration.forward";
 const char* const STRAFE = "exploration.strafe";
 const char* const TURN = "exploration.turn";
 const char* const TILT = "exploration.tilt";
-const char* const RESET = "exploration.reset";
 const char* const TURN_LEFT = "camera.turn_left";
 const char* const TURN_RIGHT = "camera.turn_right";
 const char* const INTERACT = "exploration.interact";
@@ -66,6 +65,7 @@ void GameScene::on_load() {
     dialogue_open_ = false;
     nearby_interaction_ = interaction::Target::NONE;
     player_height_ = 0.0f;
+    menu_ = pause_menu::State{};
 
     create_world();
 
@@ -84,14 +84,6 @@ void GameScene::on_load() {
 }
 
 void GameScene::bind_controls() {
-    auto keys = [this](const char* name, smlt::KeyboardCode positive,
-                       smlt::KeyboardCode negative = smlt::KEYBOARD_CODE_NONE) {
-        auto axis = input->new_axis(name);
-        axis->set_positive_keyboard_key(positive);
-        axis->set_negative_keyboard_key(negative);
-        axis->set_force(10.0f);
-        axis->set_return_speed(20.0f);
-    };
     auto buttons = [this](const char* name, smlt::JoystickButton positive,
                           smlt::JoystickButton negative = smlt::JOYSTICK_BUTTON_INVALID) {
         auto axis = input->new_axis(name);
@@ -115,19 +107,10 @@ void GameScene::bind_controls() {
     turn_right->set_joystick_axis(smlt::JOYSTICK_AXIS_RTRIGGER);
     turn_right->set_dead_zone(0.18f);
 
-    keys(FORWARD, smlt::KEYBOARD_CODE_W, smlt::KEYBOARD_CODE_S);
-    keys(FORWARD, smlt::KEYBOARD_CODE_Z, smlt::KEYBOARD_CODE_S);
-    keys(STRAFE, smlt::KEYBOARD_CODE_D, smlt::KEYBOARD_CODE_A);
-    keys(STRAFE, smlt::KEYBOARD_CODE_D, smlt::KEYBOARD_CODE_Q);
-    keys(TURN, smlt::KEYBOARD_CODE_RIGHT, smlt::KEYBOARD_CODE_LEFT);
-    keys(TILT, smlt::KEYBOARD_CODE_UP, smlt::KEYBOARD_CODE_DOWN);
-    keys(RESET, smlt::KEYBOARD_CODE_R);
-    keys(INTERACT, smlt::KEYBOARD_CODE_E);
-
     buttons(TURN, smlt::JOYSTICK_BUTTON_DPAD_RIGHT, smlt::JOYSTICK_BUTTON_DPAD_LEFT);
     buttons(TILT, smlt::JOYSTICK_BUTTON_DPAD_UP, smlt::JOYSTICK_BUTTON_DPAD_DOWN);
-    buttons(RESET, smlt::JOYSTICK_BUTTON_START);
     buttons(INTERACT, smlt::JOYSTICK_BUTTON_A);
+    bind_menu_controls();
 }
 
 void GameScene::reset_player() {
@@ -296,8 +279,8 @@ void GameScene::update_dialogue_camera() {
 }
 
 void GameScene::on_update(float dt) {
-    if(input->axis_was_pressed(RESET)) {
-        reset_player();
+    // Menu input is consumed before any movement, camera or dialogue input.
+    if(update_menu()) {
         return;
     }
 
@@ -355,9 +338,10 @@ void GameScene::on_update(float dt) {
 
 void GameScene::on_unload() {
     stop_music();
+    unbind_menu_controls();
 
     // InputManager outlives this scene: remove only the bindings we created.
-    for(const auto* name : {FORWARD, STRAFE, TURN, TILT, RESET,
+    for(const auto* name : {FORWARD, STRAFE, TURN, TILT,
                             TURN_LEFT, TURN_RIGHT, INTERACT}) {
         input->destroy_axises(name);
     }
@@ -371,6 +355,8 @@ void GameScene::on_unload() {
     interaction_label_ = nullptr;
     dialogue_name_ = nullptr;
     dialogue_text_ = nullptr;
+    menu_root_ = nullptr;
+    menu_rows_.fill(nullptr);
     object_ = nullptr;
     victory_marker_ = nullptr;
     obstacles_.clear();

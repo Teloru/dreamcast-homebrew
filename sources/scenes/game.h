@@ -2,8 +2,11 @@
 
 #include <simulant/simulant.h>
 
+#include <array>
+
 #include "camera_collision.h"
 #include "interaction.h"
+#include "pause_menu.h"
 #include "walking.h"
 
 enum class QuestState {
@@ -43,6 +46,12 @@ private:
     void bind_controls();
     void start_music();
     void stop_music();
+    void apply_music_volume();
+    void bind_menu_controls();
+    void unbind_menu_controls();
+    void setup_menu();
+    void update_menu_ui();
+    bool update_menu();
     void reset_player();
     void update_camera();
     void setup_ui();
@@ -68,6 +77,9 @@ private:
     smlt::ui::Label* interaction_label_ = nullptr;
     smlt::ui::Label* dialogue_name_ = nullptr;
     smlt::ui::Label* dialogue_text_ = nullptr;
+    smlt::Stage* menu_root_ = nullptr;
+    std::array<smlt::ui::Label*, 3> menu_rows_{};
+    pause_menu::State menu_;
     smlt::Actor* object_ = nullptr;
     smlt::Actor* victory_marker_ = nullptr;
     smlt::SoundPtr music_;

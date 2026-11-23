@@ -1,11 +1,5 @@
 #include "game.h"
 
-namespace {
-
-constexpr float MUSIC_GAIN = 0.5f;
-
-} // namespace
-
 void GameScene::start_music() {
     if(music_playing_) {
         return;
@@ -33,7 +27,13 @@ void GameScene::start_music() {
         stop_music();
         return;
     }
-    music_playing_->set_gain(MUSIC_GAIN);
+    apply_music_volume();
+}
+
+void GameScene::apply_music_volume() {
+    if(music_playing_) {
+        music_playing_->set_gain(menu_.music_volume() / 100.0f);
+    }
 }
 
 void GameScene::stop_music() {
