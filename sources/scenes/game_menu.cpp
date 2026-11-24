@@ -113,6 +113,9 @@ bool GameScene::update_menu() {
     }
     if(action == pause_menu::Action::VOLUME_CHANGED) {
         apply_music_volume();
+        play_sound_effect(SoundEffect::VOLUME_TICK);
+    } else if(action == pause_menu::Action::RESUME) {
+        play_sound_effect(SoundEffect::RESUME);
     } else if(action == pause_menu::Action::RESTART) {
         reset_player();
     }

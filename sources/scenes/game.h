@@ -35,6 +35,8 @@ public:
     void on_unload() override;
 
 private:
+    enum class SoundEffect { QUESTION, STAR, VOLUME_TICK, RESUME, COUNT };
+
     void create_world();
     smlt::MaterialPtr make_material(const smlt::Color& color);
     smlt::MeshPtr make_box_mesh(const smlt::Vec3& size,
@@ -47,6 +49,9 @@ private:
     void start_music();
     void stop_music();
     void apply_music_volume();
+    void load_sound_effects();
+    void play_sound_effect(SoundEffect effect);
+    void unload_sound_effects();
     void bind_menu_controls();
     void unbind_menu_controls();
     void setup_menu();
@@ -85,6 +90,8 @@ private:
     smlt::SoundPtr music_;
     smlt::AudioSource* music_source_ = nullptr;
     smlt::PlayingSoundPtr music_playing_;
+    std::array<smlt::SoundPtr, static_cast<std::size_t>(SoundEffect::COUNT)> sound_effects_{};
+    smlt::AudioSource* sound_effects_source_ = nullptr;
     float camera_yaw_ = 0.0f;
     float camera_elevation_ = 30.0f;
     float player_height_ = 0.0f;

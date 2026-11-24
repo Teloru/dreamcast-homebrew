@@ -80,6 +80,7 @@ void GameScene::on_load() {
 
     bind_controls();
     reset_player();
+    load_sound_effects();
     start_music();
 }
 
@@ -171,6 +172,7 @@ void GameScene::advance_dialogue() {
         if(object_) {
             object_->set_visible(false);
         }
+        play_sound_effect(SoundEffect::STAR);
     } else if(dialogue_action_ == DialogueAction::REPAIR_ITEM) {
         quest_state_ = QuestState::ITEM_REPAIRED;
     } else if(dialogue_action_ == DialogueAction::COMPLETE_QUEST) {
@@ -204,6 +206,10 @@ bool GameScene::update_nearby_interaction() {
 }
 
 void GameScene::interact_with_nearby() {
+    if(dialogue_open_) {
+        return;
+    }
+
     if(nearby_interaction_ == interaction::Target::NPC_A) {
         if(quest_state_ == QuestState::NOT_STARTED) {
             begin_dialogue("Mia",
@@ -229,6 +235,7 @@ void GameScene::interact_with_nearby() {
                            sizeof(NPC_A_DIALOGUE_COMPLETE) /
                                sizeof(NPC_A_DIALOGUE_COMPLETE[0]));
         }
+        play_sound_effect(SoundEffect::QUESTION);
     } else if(nearby_interaction_ == interaction::Target::NPC_B) {
         if(quest_state_ == QuestState::ITEM_FOUND) {
             begin_dialogue("Momo", NPC_B_DIALOGUE_REPAIR,
@@ -240,6 +247,7 @@ void GameScene::interact_with_nearby() {
                            sizeof(NPC_B_DIALOGUE_WAIT) /
                                sizeof(NPC_B_DIALOGUE_WAIT[0]));
         }
+        play_sound_effect(SoundEffect::QUESTION);
     } else if(nearby_interaction_ == interaction::Target::OBJECT &&
               quest_state_ == QuestState::SEARCHING_ITEM) {
         begin_dialogue("Objet endommage", OBJECT_DIALOGUE,
@@ -341,6 +349,7 @@ void GameScene::on_update(float dt) {
 }
 
 void GameScene::on_unload() {
+    unload_sound_effects();
     stop_music();
     unbind_menu_controls();
 
