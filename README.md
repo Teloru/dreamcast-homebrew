@@ -29,16 +29,31 @@ blocks, an arch and our original triangle on a pedestal. A directional light
 helps distinguish the faces of the geometry. The blue background and Simulant
 splash are preserved.
 
-| Action | Dreamcast controller | Keyboard exposed to the engine |
-| --- | --- | --- |
-| Walk relative to the camera | Analog stick | WASD or ZQSD |
-| Orbit the camera left / right | X / B or D-pad left / right | Left / right arrows |
-| Raise / lower the camera angle | Y / A or D-pad up / down | Up / down arrows |
-| Return to the starting position | Start | R |
+| Action | Dreamcast controller |
+| --- | --- |
+| Walk relative to the camera | Analog stick |
+| Orbit the camera left / right | L / R triggers or D-pad left / right |
+| Raise / lower the camera angle | D-pad up / down |
+| Talk / collect / advance dialogue | A |
+| Open / close the pause menu | Start |
+| Restart the quest and return to the starting position | Pause menu: Recommencer la quete |
 
 In Flycast, configure the host keyboard or gamepad as a Dreamcast controller;
-the game reads the emulated controller. The keyboard bindings above also support
-a keyboard supplied directly to Simulant.
+the game reads the emulated controller. The game only binds Dreamcast controller
+inputs; PC keyboard mappings belong in the emulator configuration.
+
+The pause menu offers Resume, Music volume and Restart. Use D-pad up / down to
+select an item, left / right to change music volume in 10% steps, A to confirm
+and B or Start to resume.
+Movement, camera controls and dialogue progression stop while the menu is open;
+music continues so its volume can be adjusted. Volume starts at 50%, with 0%
+muting it, and is retained when resuming or restarting the quest. This setting
+lasts for the current session; it is not saved to VMU.
+
+The menu is implemented in `sources/scenes/game_menu.cpp`; its input and volume
+state lives in `sources/scenes/pause_menu.h`. Native tests and Dreamcast builds
+do not validate its display or audio output: these still require Flycast or
+console testing.
 
 The player stays on the flat ground. Static boxes stop movement and allow sliding
 along their sides; the camera moves closer when a block obstructs its view.
@@ -70,4 +85,8 @@ g++ -std=c++17 -Wall -Wextra -pedantic tests/test_walking.cpp -o /tmp/dreamcast-
 /tmp/dreamcast-next-walking-test
 g++ -std=c++17 -Wall -Wextra -pedantic tests/test_camera_collision.cpp -o /tmp/dreamcast-next-camera-test
 /tmp/dreamcast-next-camera-test
+g++ -std=c++17 -Wall -Wextra -pedantic tests/test_pause_menu.cpp -o /tmp/dreamcast-next-menu-test
+/tmp/dreamcast-next-menu-test
 ```
+
+Sound effects: Cozy UI Sounds by Spaceyyy and Cozy Story SFX by Bramble & Byte.
