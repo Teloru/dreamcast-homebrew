@@ -11,23 +11,25 @@
 
 My first steps into **Dreamcast homebrew development**! A little 3D game project written in C++, using [Simulant](https://gitlab.com/simulant/simulant) and [KallistiOS](https://github.com/KallistiOS/KallistiOS).
 
-## Current state
+## The prototype
 
 Still very early in development :p
 
-- [x] Set up the Dreamcast toolchain
-- [x] Build a `.cdi` and run it in Flycast
-- [x] Render a custom background
-- [x] Render my first 3D triangle
-- [x] Walk around a small 3D scene in third person
-- [ ] Add a game objective
+A small courtyard to explore in third person, with a block character, obstacles,
+an arch and a stepped platform.
 
-## Exploration prototype
+There is now a short quest with 2 NPCs: find a broken mechanical part on
+the platform, get it repaired and bring it back. The character has movement
+collisions, and the following camera moves closer when the scenery gets in
+the way. Picking up the part also checks the height of the character's feet.
 
-A small courtyard with a visible block character, a checkerboard floor, colored
-blocks, an arch and our original triangle on a pedestal. A directional light
-helps distinguish the faces of the geometry. The blue background and Simulant
-splash are preserved.
+Audio engine set up with a background song and short sounds for starting conversations,
+collecting the part and using the pause menu. The menu lets you resume, adjust
+music volume or restart the quest. Music keeps playing during the pause;
+movement, camera controls and dialogue progression stop. Volume starts at 50%
+and stays in memory for the session, without a VMU save.
+
+## Controls
 
 | Action | Dreamcast controller |
 | --- | --- |
@@ -38,55 +40,31 @@ splash are preserved.
 | Open / close the pause menu | Start |
 | Restart the quest and return to the starting position | Pause menu: Recommencer la quete |
 
-In Flycast, configure the host keyboard or gamepad as a Dreamcast controller;
-the game reads the emulated controller. The game only binds Dreamcast controller
-inputs; PC keyboard mappings belong in the emulator configuration.
-
-The pause menu offers Resume, Music volume and Restart. Use D-pad up / down to
-select an item, left / right to change music volume in 10% steps, A to confirm
-and B or Start to resume.
-Movement, camera controls and dialogue progression stop while the menu is open;
-music continues so its volume can be adjusted. Volume starts at 50%, with 0%
-muting it, and is retained when resuming or restarting the quest. This setting
-lasts for the current session; it is not saved to VMU.
-
-The menu is implemented in `sources/scenes/game_menu.cpp`; its input and volume
-state lives in `sources/scenes/pause_menu.h`. Native tests and Dreamcast builds
-do not validate its display or audio output: these still require Flycast or
-console testing.
-
-The player stays on the flat ground. Static boxes stop movement and allow sliding
-along their sides; the camera moves closer when a block obstructs its view.
-Movement speed is multiplied by frame time, and diagonal input is capped to the
-same maximum speed as straight input.
-
-`sources/scenes/game.cpp` creates the world, reads input, moves the character and
-updates the camera. `sources/scenes/walking.h` contains the independent XZ
-collision logic, and `sources/scenes/camera_collision.h` keeps the camera outside
-the static geometry. The character is a `Stage` grouping its body, head and nose;
-the perspective camera follows it while looking at a point above its feet.
+In the pause menu, use D-pad up / down to select, left / right to change volume
+in 10% steps (0–100%), A to confirm, and B or Start to resume.
 
 ## Build
 
 With [Simulant Tools](https://gitlab.com/simulant/simulant-tools) and the Dreamcast Docker SDK configured:
 
 ```bash
-simulant update -b next
 simulant build dreamcast
 simulant package dreamcast
 ```
 
-The Dreamcast image is generated in `packages/dreamcast-sh4-gcc/`.
+The image is generated at `packages/dreamcast-sh4-gcc/dreamcast-next.cdi`.
 
-The player and camera collision checks can be tested without the Dreamcast SDK:
+## Checks
+
+Native checks for movement, camera collisions, interactions, the pause menu and
+music decoding can run without the Dreamcast SDK:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic tests/test_walking.cpp -o /tmp/dreamcast-next-walking-test
-/tmp/dreamcast-next-walking-test
-g++ -std=c++17 -Wall -Wextra -pedantic tests/test_camera_collision.cpp -o /tmp/dreamcast-next-camera-test
-/tmp/dreamcast-next-camera-test
-g++ -std=c++17 -Wall -Wextra -pedantic tests/test_pause_menu.cpp -o /tmp/dreamcast-next-menu-test
-/tmp/dreamcast-next-menu-test
+for name in walking camera_collision interaction pause_menu music; do
+    g++ -std=c++17 -O2 -Wall -Wextra "tests/test_${name}.cpp" -o "/tmp/dreamcast-test-${name}" && "/tmp/dreamcast-test-${name}"
+done
+python3 tests/test_sfx_assets.py
 ```
 
-Sound effects: Cozy UI Sounds by Spaceyyy and Cozy Story SFX by Bramble & Byte.
+
+Music: Telohub by Panock · SFX: Cozy UI Sounds by Spaceyyy and Cozy Story SFX by Bramble & Byte · Dreamcast help: Mouse's Mistake.
