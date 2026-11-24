@@ -4,8 +4,8 @@
 
 namespace pause_menu {
 
-enum class Item { RESUME, MUSIC, RESTART };
-enum class Action { NONE, RESUME, RESTART, VOLUME_CHANGED };
+enum class Item { RESUME, MUSIC, RESTART, RETURN_TO_TITLE, COUNT };
+enum class Action { NONE, RESUME, RESTART, RETURN_TO_TITLE, VOLUME_CHANGED };
 
 struct Input {
     bool toggle = false;
@@ -23,6 +23,19 @@ public:
     Item selected() const { return selected_; }
     int music_volume() const { return music_volume_; }
 
+    void close() {
+        open_ = false;
+        selected_ = Item::RESUME;
+    }
+
+    // Shared with the title options; direction chooses one 10% step.
+    bool change_music_volume(int direction) {
+        const int previous = music_volume_;
+        const int step = (direction > 0) - (direction < 0);
+        music_volume_ = std::clamp(music_volume_ + step * 10, 0, 100);
+        return previous != music_volume_;
+    }
+
     // Inputs are presses, not held values: one step per press.
     Action update(const Input& input) {
         if(input.toggle) {
@@ -34,25 +47,27 @@ public:
             return Action::NONE;
         }
         if(input.cancel) {
-            open_ = false;
+            close();
             return Action::RESUME;
         }
         if(input.up != input.down) {
             const int direction = input.down ? 1 : -1;
+            constexpr int count = static_cast<int>(Item::COUNT);
             selected_ = static_cast<Item>((static_cast<int>(selected_) +
-                                           direction + 3) % 3);
+                                           direction + count) % count);
             return Action::NONE;
         }
         if(selected_ == Item::MUSIC && input.left != input.right) {
-            const int previous = music_volume_;
-            music_volume_ = std::clamp(music_volume_ + (input.right ? 10 : -10),
-                                       0, 100);
-            return previous != music_volume_
+            return change_music_volume(input.right ? 1 : -1)
                 ? Action::VOLUME_CHANGED : Action::NONE;
         }
         if(input.confirm && selected_ != Item::MUSIC) {
-            open_ = false;
-            return selected_ == Item::RESTART ? Action::RESTART : Action::RESUME;
+            const auto selection = selected_;
+            close();
+            if(selection == Item::RETURN_TO_TITLE) {
+                return Action::RETURN_TO_TITLE;
+            }
+            return selection == Item::RESTART ? Action::RESTART : Action::RESUME;
         }
         return Action::NONE;
     }

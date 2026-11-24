@@ -55,7 +55,7 @@ void GameScene::stop_music() {
 void GameScene::load_sound_effects() {
     const char* const paths[] = {
         "sfx/question.wav", "sfx/star.wav",
-        "sfx/slider-tick-1.wav", "sfx/back-1.wav"
+        "sfx/slider-tick-1.wav", "sfx/back-1.wav", "sfx/scene-change.wav"
     };
     static_assert(sizeof(paths) / sizeof(paths[0]) ==
                   static_cast<std::size_t>(SoundEffect::COUNT),

@@ -19,7 +19,9 @@ const MenuBinding MENU_BINDINGS[] = {
     {"menu.confirm", smlt::JOYSTICK_BUTTON_A}
 };
 
-smlt::ui::Label* make_menu_label(smlt::Stage* parent, const char* text,
+} // namespace
+
+smlt::ui::Label* GameScene::make_menu_label(smlt::Stage* parent, const char* text,
                                  float x, float y, int width, int height,
                                  int font_size, int precedence) {
     smlt::Params params;
@@ -34,7 +36,14 @@ smlt::ui::Label* make_menu_label(smlt::Stage* parent, const char* text,
     return label;
 }
 
-} // namespace
+void GameScene::set_menu_row(smlt::ui::Label* row, const std::string& text,
+                              bool selected) {
+    row->set_text(::unicode((selected ? "> " : "  ") + text));
+    row->set_text_color(selected
+        ? smlt::Color(1.0f, 0.85f, 0.35f, 1.0f) : smlt::Color::white());
+    row->set_background_color(selected
+        ? smlt::Color(0.14f, 0.23f, 0.38f, 1.0f) : smlt::Color::none());
+}
 
 void GameScene::bind_menu_controls() {
     // Each direction has its own positive axis, so presses are unambiguous.
@@ -71,33 +80,26 @@ void GameScene::setup_menu() {
     }
     make_menu_label(menu_root_,
         "Croix : choisir / regler\nA : valider   B / Start : reprendre",
-        112.0f, 96.0f, 416, 64, 14, 31);
+        112.0f, 88.0f, 416, 40, 14, 31);
 
     update_menu_ui();
 }
 
 void GameScene::update_menu_ui() {
-    menu_root_->set_visible(menu_.is_open());
-    const std::array<std::string, 3> labels = {
+    menu_root_->set_visible(menu_.is_open() && !title_.is_active());
+    const std::array<std::string, 4> labels = {
         "Reprendre",
         "Volume musique : < " + std::to_string(menu_.music_volume()) + " % >",
-        "Recommencer la quete"
+        "Recommencer la quete",
+        "Retour au titre"
     };
     for(std::size_t i = 0; i < menu_rows_.size(); ++i) {
         const bool selected = static_cast<std::size_t>(menu_.selected()) == i;
-        menu_rows_[i]->set_text(::unicode((selected ? "> " : "  ") + labels[i]));
-        menu_rows_[i]->set_text_color(selected
-            ? smlt::Color(1.0f, 0.85f, 0.35f, 1.0f) : smlt::Color::white());
-        menu_rows_[i]->set_background_color(selected
-            ? smlt::Color(0.14f, 0.23f, 0.38f, 1.0f) : smlt::Color::none());
+        set_menu_row(menu_rows_[i], labels[i], selected);
     }
 }
 
-bool GameScene::update_menu() {
-    const bool was_open = menu_.is_open();
-    const auto previous_item = menu_.selected();
-    const auto previous_volume = menu_.music_volume();
-
+pause_menu::Input GameScene::read_menu_input() {
     pause_menu::Input pressed;
     pressed.toggle = input->axis_was_pressed("menu.toggle");
     pressed.cancel = input->axis_was_pressed("menu.cancel");
@@ -106,6 +108,14 @@ bool GameScene::update_menu() {
     pressed.left = input->axis_was_pressed("menu.left");
     pressed.right = input->axis_was_pressed("menu.right");
     pressed.confirm = input->axis_was_pressed("menu.confirm");
+    return pressed;
+}
+
+bool GameScene::update_menu() {
+    const bool was_open = menu_.is_open();
+    const auto previous_item = menu_.selected();
+    const auto previous_volume = menu_.music_volume();
+    const auto pressed = read_menu_input();
     const auto action = menu_.update(pressed);
 
     if(!was_open && !menu_.is_open()) {
@@ -118,6 +128,9 @@ bool GameScene::update_menu() {
         play_sound_effect(SoundEffect::RESUME);
     } else if(action == pause_menu::Action::RESTART) {
         reset_player();
+    } else if(action == pause_menu::Action::RETURN_TO_TITLE) {
+        show_title();
+        play_sound_effect(SoundEffect::RESUME);
     }
     if(was_open != menu_.is_open() || previous_item != menu_.selected() ||
        previous_volume != menu_.music_volume()) {

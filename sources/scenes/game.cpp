@@ -66,6 +66,7 @@ void GameScene::on_load() {
     nearby_interaction_ = interaction::Target::NONE;
     player_height_ = 0.0f;
     menu_ = pause_menu::State{};
+    title_ = title_menu::State{};
 
     create_world();
 
@@ -79,9 +80,9 @@ void GameScene::on_load() {
     setup_ui();
 
     bind_controls();
-    reset_player();
     load_sound_effects();
     start_music();
+    show_title();
 }
 
 void GameScene::bind_controls() {
@@ -291,6 +292,10 @@ void GameScene::update_dialogue_camera() {
 }
 
 void GameScene::on_update(float dt) {
+    if(update_title(dt)) {
+        return;
+    }
+
     // Menu input is consumed before any movement, camera or dialogue input.
     if(update_menu()) {
         return;
@@ -370,6 +375,12 @@ void GameScene::on_unload() {
     dialogue_text_ = nullptr;
     menu_root_ = nullptr;
     menu_rows_.fill(nullptr);
+    title_root_ = nullptr;
+    title_heading_ = nullptr;
+    title_prompt_ = nullptr;
+    title_panel_ = nullptr;
+    title_help_ = nullptr;
+    title_rows_.fill(nullptr);
     object_ = nullptr;
     victory_marker_ = nullptr;
     obstacles_.clear();

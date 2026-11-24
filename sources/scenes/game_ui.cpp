@@ -112,6 +112,7 @@ void GameScene::setup_ui() {
     dialogue_text_->set_opacity(0.0f);
     dialogue_text_->set_precedence(20);
     setup_menu();
+    setup_title();
 }
 
 void GameScene::update_ui() {
@@ -137,7 +138,7 @@ void GameScene::update_ui() {
         }
     }
 
-    const bool show_dialogue = dialogue_open_ && !menu_.is_open();
+    const bool show_dialogue = dialogue_open_ && !menu_.is_open() && !title_.is_active();
     if(dialogue_ui_visible_ != show_dialogue) {
         dialogue_ui_visible_ = show_dialogue;
         const auto opacity = dialogue_ui_visible_ ? 1.0f : 0.0f;
@@ -172,7 +173,8 @@ void GameScene::update_ui() {
         ui_interaction_text_ = interaction;
         set_utf8_text(interaction_label_, interaction);
     }
-    const bool interaction_visible = !interaction.empty() && !menu_.is_open();
+    const bool interaction_visible = !interaction.empty() && !menu_.is_open() &&
+                                     !title_.is_active();
     if(interaction_ui_visible_ != interaction_visible) {
         interaction_ui_visible_ = interaction_visible;
         if(interaction_label_) {

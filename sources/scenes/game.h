@@ -7,6 +7,7 @@
 #include "camera_collision.h"
 #include "interaction.h"
 #include "pause_menu.h"
+#include "title_menu.h"
 #include "walking.h"
 
 enum class QuestState {
@@ -35,7 +36,7 @@ public:
     void on_unload() override;
 
 private:
-    enum class SoundEffect { QUESTION, STAR, VOLUME_TICK, RESUME, COUNT };
+    enum class SoundEffect { QUESTION, STAR, VOLUME_TICK, RESUME, SCENE_CHANGE, COUNT };
 
     void create_world();
     smlt::MaterialPtr make_material(const smlt::Color& color);
@@ -57,6 +58,16 @@ private:
     void setup_menu();
     void update_menu_ui();
     bool update_menu();
+    pause_menu::Input read_menu_input();
+    smlt::ui::Label* make_menu_label(smlt::Stage* parent, const char* text,
+                                    float x, float y, int width, int height,
+                                    int font_size, int precedence);
+    void set_menu_row(smlt::ui::Label* row, const std::string& text, bool selected);
+    void setup_title();
+    void show_title();
+    void update_title_ui();
+    void update_title_camera(float dt);
+    bool update_title(float dt);
     void reset_player();
     void update_camera();
     void setup_ui();
@@ -83,8 +94,16 @@ private:
     smlt::ui::Label* dialogue_name_ = nullptr;
     smlt::ui::Label* dialogue_text_ = nullptr;
     smlt::Stage* menu_root_ = nullptr;
-    std::array<smlt::ui::Label*, 3> menu_rows_{};
+    std::array<smlt::ui::Label*, static_cast<std::size_t>(pause_menu::Item::COUNT)> menu_rows_{};
     pause_menu::State menu_;
+    title_menu::State title_;
+    smlt::Stage* title_root_ = nullptr;
+    smlt::ui::Label* title_heading_ = nullptr;
+    smlt::ui::Label* title_prompt_ = nullptr;
+    smlt::ui::Label* title_panel_ = nullptr;
+    smlt::ui::Label* title_help_ = nullptr;
+    std::array<smlt::ui::Label*, 2> title_rows_{};
+    float title_camera_time_ = 0.0f;
     smlt::Actor* object_ = nullptr;
     smlt::Actor* victory_marker_ = nullptr;
     smlt::SoundPtr music_;
